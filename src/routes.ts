@@ -1,71 +1,14 @@
 import express from "express";
-import db from "./database/connections";
-import convertHourToMinutes from "./utils/convertHourToMinutes";
+import ClassesController from "./controllers/ClassesController";
 
 const routes = express.Router();
+
+const classesController = new ClassesController()
 
 routes.get("/", (req, res) => {
   res.send({ message: "Hello World" });
 });
 
-routes.post("/classes", async (req, res) => {
-  const {
-    name,
-    avatarUrl,
-    bio,
-    pricePerHour,
-    whatsapp,
-    subject,
-    schedule,
-  } = req.body;
-
-  const transaction = await db.transaction();
-
-  try {
-    const resultUserCreation = await transaction
-      .insert({ name, avatarUrl, bio, whatsapp })
-      .into("users");
-
-    const user_id = resultUserCreation[0];
-
-    const resultClassCreation = await transaction
-      .insert({
-        user_id,
-        subject,
-        pricePerHour,
-      })
-      .into("classes");
-
-    const class_id = resultClassCreation[0];
-
-    interface ScheduleItem {
-      week_day: number;
-      from: string;
-      to: string;
-    }
-
-    const schedulesToBeSaved = schedule.map((scheduleItem: ScheduleItem) => {
-      return {
-        class_id,
-        week_day: scheduleItem.week_day,
-        from: convertHourToMinutes(scheduleItem.from),
-        to: convertHourToMinutes(scheduleItem.to),
-      };
-    });
-
-    await transaction.insert(schedulesToBeSaved).into("class_schedules");
-
-    await transaction.commit();
-
-    res.status(201).send();
-  } catch (err) {
-    await transaction.rollback();
-
-    res.status(400).send({
-      error: "An error has occuried while creating new class.",
-      exception: err,
-    });
-  }
-});
+routes.post("/classes", classesController.create);
 
 export default routes;
