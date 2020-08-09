@@ -16,5 +16,11 @@ comando:
 
 ```yarn start```
 
-Para acessar a API
+Para acessar a API, abra o navegador no seguinte endereço:
+
+http://localhost:3333/
+
+Adicionalmente, você pode consultar a API via Swagger UI a partir do endereço:
+
+http://localhost:3333/api-docs
 

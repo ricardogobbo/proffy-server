@@ -1,0 +1,298 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Proffy Server API",
+    "description": "API do projeto Proffy, desenvolvido durante a NLW #2",
+    "version": "1.0"
+  },
+  "host": "localhost:3333",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Classes",
+      "description": "API para gestão de Proffys, Classes e Agendas de Aulas"
+    },
+    {
+      "name": "Connections",
+      "description": "API para gestão de Conexões entre Visitantes e Proffys"
+    }
+  ],
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "definitions": {
+    "user": {
+      "description": "Usuário do Proffy. Trata-se de um professor com horário disponível para criar conexões e dar aulas dentro da plataforma",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Identificador do Proffy"
+        },
+        "name": {
+          "type": "string",
+          "description": "Nome do Proffy",
+          "example": "Rafael Moreira da Silva"
+        },
+        "bio": {
+          "type": "string",
+          "description": "Biografia do Proffy",
+          "example": "Esta é uma biografia de um Proffy"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "URL da imagem do avatar do Proffy",
+          "example": "https://api.adorable.io/avatars/285/randomAvatar"
+        },
+        "whatsapp": {
+          "type": "string",
+          "description": "Número do Whatsapp do Proffy. Deve seguir o padrão de números de telefones brasileiros. +55 (xx) xxxxx-xxxx",
+          "example": "+55 99 99999-9999"
+        }
+      }
+    },
+    "class": {
+      "description": "Classe que o Proffy possui disponibilidade para dar aulas",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Identificador da Classe"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Nome da matéria que o Proffy tem disponibilidade de dar aulas",
+          "example": "Português"
+        },
+        "pricePerHour": {
+          "type": "number",
+          "description": "Preço por hora que o Proffy cobra para dar aulas da matéria",
+          "example": 100
+        },
+        "user_id": {
+          "type": "integer",
+          "description": "Identificador do usuário Proffy"
+        }
+      }
+    },
+    "class_schedule": {
+      "description": "Agenda de horários disponíveis dos Proffys da plataforma",
+      "properties": {
+        "week_day": {
+          "type": "integer",
+          "description": "Dia da semana do item.",
+          "enum": [0, 1, 2, 3, 4, 5, 6]
+        },
+        "from": {
+          "type": "string",
+          "description": "Horário de início do item de agenda do proffy. Padrão HH:MM",
+          "example": "14:00"
+        },
+        "to": {
+          "type": "string",
+          "description": "Horário de finalização do item de agenda do proffy. Padrão HH:MM",
+          "example": "18:00"
+        },
+        "class_id": {
+          "type": "integer",
+          "description": "Identificador da classe do Proffy"
+        }
+      }
+    },
+    "connection": {
+      "description": "Conexão entre o Proffy e um aluno visitante",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Identificador da conexão"
+        },
+        "created_at": {
+          "type": "string",
+          "description": "Data de criação da conexão",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "user_id": {
+          "type": "integer",
+          "description": "Identificador do usuário Proffy",
+          "$ref": "#/definitions/user"
+        }
+      }
+    },
+    "classCreationData": {
+      "description": "Objeto para criação de um novo Proffy e suas dependências",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Rafael Moreira da Silva"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "example": "https://api.adorable.io/avatars/285/randomAvatar"
+        },
+        "whatsapp": {
+          "type": "string",
+          "example": "+55 99 99999-9999"
+        },
+        "bio": {
+          "type": "string",
+          "example": "Esta é uma biografia de um Proffy"
+        },
+        "subject": {
+          "type": "string",
+          "example": "Português"
+        },
+        "pricePerHour": {
+          "type": "number",
+          "example": 100
+        },
+        "schedule": {
+          "type": "array",
+          "items": {
+            "minItems": 2,
+            "$ref": "#/definitions/class_schedule"
+          }
+        }
+      }
+    },
+    "userAndClass": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Rafael Moreira da Silva"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "example": "https://api.adorable.io/avatars/285/randomAvatar"
+        },
+        "whatsapp": {
+          "type": "string",
+          "example": "+55 99 99999-9999"
+        },
+        "bio": {
+          "type": "string",
+          "example": "Esta é uma biografia de um Proffy"
+        },
+        "subject": {
+          "type": "string",
+          "example": "Português"
+        },
+        "pricePerHour": {
+          "type": "number",
+          "example": 100
+        }
+      }
+    },
+    "connectionTotals": {
+      "properties": {
+        "total": {
+          "type": "integer"
+        }
+      }
+    },
+    "connectionPost": {
+      "properties": {
+        "user_id": {
+          "type": "integer",
+          "description": "Identificador do Usuário"
+        }
+      }
+    }
+  },
+
+  "paths": {
+    "/classes": {
+      "get": {
+        "tags": ["Classes"],
+        "summary": "Lista os proffys e suas respectivas agendas",
+        "parameters": [
+          {
+            "name": "subject",
+            "in": "query",
+            "type": "string",
+            "allowEmptyValue": false,
+            "description": "Nome da Matéria"
+          },
+          {
+            "name": "week_day",
+            "in": "query",
+            "type": "string",
+            "allowEmptyValue": false,
+            "description": "Dia da Semana"
+          },
+          {
+            "name": "time",
+            "in": "query",
+            "type": "string",
+            "allowEmptyValue": false,
+            "description": "Horário em formato HH:MM"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de proffys do horário, matéria e dia da semana",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/userAndClass"
+              }
+            }
+          },
+          "400": {
+            "description": "Erro devido à falta de algum dos parametros de consulta."
+          }
+        }
+      },
+      "post": {
+        "tags": ["Classes"],
+        "description": "Realiza a criação de uma classe, juntamente com o proffy e a sua respectiva agenda de horários",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Informações sobre o Proffy, sua classe e sua agenda",
+            "schema": {
+              "$ref": "#/definitions/classCreationData"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK Created"
+          }
+        }
+      }
+    },
+    "/connections": {
+      "get": {
+        "tags": ["Connections"],
+        "responses": {
+          "200": {
+            "description": "Retorna a quantidade de conexões realizadas",
+            "schema": {
+              "$ref": "#/definitions/connectionTotals"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Connections"],
+        "description": "Cria uma nova conexão entre um visitante e um Proffy",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/connectionPost"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK Created"
+          },
+          "404": {
+            "description": "Usuário not found"
+          }
+        }
+      }
+    }
+  }
+}

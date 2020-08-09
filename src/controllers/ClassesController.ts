@@ -6,6 +6,7 @@ import convertHourToMinutes from "../utils/convertHourToMinutes";
 export default class ClassesController {
   async index(req: Request, res: Response) {
     const filters = req.query;
+    console.log(filters);
 
     const subject = filters.subject as string;
     const week_day = filters.week_day as string;
@@ -13,7 +14,9 @@ export default class ClassesController {
     const timeInMinutes = convertHourToMinutes(time);
 
     if (!subject || !week_day || !time) {
-      return res.send({ error: true, message: "You need to specify all" });
+      return res
+        .status(400)
+        .send({ error: true, message: "You need to specify all" });
     }
 
     let result = await db("classes")
@@ -28,7 +31,7 @@ export default class ClassesController {
       .andWhere("class_schedules.week_day", "=", week_day)
       .andWhere("class_schedules.from", "<=", timeInMinutes)
       .andWhere("class_schedules.to", ">", timeInMinutes)
-      .select(['classes.*', 'users.*']);
+      .select(["classes.*", "users.*"]);
 
     res.json(result);
   }
