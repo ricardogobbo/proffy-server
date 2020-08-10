@@ -13,4 +13,3 @@ export default function convertHourToMinutes(timeString: string) {
     return null;
   }
 }
-// through 
